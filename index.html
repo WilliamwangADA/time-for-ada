@@ -11,6 +11,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="时间之旅">
 <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" href="assets/icons/icon-192.png">
 <style>
   * { margin:0; padding:0; box-sizing:border-box; }
   html, body {
@@ -48,8 +49,8 @@
     transform:translate(-50%,-50%); cursor:pointer; z-index:3; }
   .mapNode .num { font-size:min(4.2vw,26px); font-weight:700; color:#fff; }
   .mapNode .lbl { position:absolute; top:104%; white-space:nowrap; font-size:min(2.6vw,13px); color:#b8c2dd; }
-  .mapNode.locked { background:radial-gradient(circle at 35% 30%, #3a4462, #1e2540); box-shadow:inset 0 0 10px rgba(0,0,0,.6); }
-  .mapNode.locked .num { filter:grayscale(1) brightness(.45); }
+  .mapNode.todo { background:radial-gradient(circle at 35% 30%, #55628c, #2c3556); box-shadow:0 0 10px rgba(120,140,200,.25); }
+  .mapNode.todo .num { filter:saturate(.7) brightness(.9); }
   .mapNode.open { background:radial-gradient(circle at 35% 30%, #ffe9b0, #d99a37);
     box-shadow:0 0 26px rgba(233,182,90,.65); animation:pulse 1.8s ease-in-out infinite; }
   .mapNode.open .num { color:#3a2703; }
@@ -123,17 +124,31 @@
   <div id="levelScreen" class="screen">
     <div id="stage"></div>
     <div id="hud">
-      <div class="hudBtn" id="homeBtn" title="回地图">
-        <svg viewBox="0 0 24 24" fill="none" stroke="#f2e6c8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M3 11 12 3l9 8"/><path d="M5 10v10h14V10"/>
-        </svg>
+      <div style="display:flex;gap:10px">
+        <div class="hudBtn" id="homeBtn" title="回星空">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#f2e6c8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 11 12 3l9 8"/><path d="M5 10v10h14V10"/>
+          </svg>
+        </div>
+        <div class="hudBtn" id="prevBtn" title="上一个">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#f2e6c8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M15 5 8 12l7 7"/>
+          </svg>
+        </div>
       </div>
       <div id="levelTitle"></div>
-      <div class="hudBtn" id="voiceBtn" title="再听一遍">
-        <svg viewBox="0 0 24 24" fill="none" stroke="#f2e6c8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M4 9v6h4l5 4V5L8 9H4z" fill="#f2e6c8" stroke="none"/>
-          <path d="M16 8a5 5 0 0 1 0 8"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/>
-        </svg>
+      <div style="display:flex;gap:10px">
+        <div class="hudBtn" id="nextLvlBtn" title="下一个">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#f2e6c8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 5l7 7-7 7"/>
+          </svg>
+        </div>
+        <div class="hudBtn" id="voiceBtn" title="再听一遍">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#f2e6c8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 9v6h4l5 4V5L8 9H4z" fill="#f2e6c8" stroke="none"/>
+            <path d="M16 8a5 5 0 0 1 0 8"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/>
+          </svg>
+        </div>
       </div>
     </div>
     <div id="doneOverlay">

@@ -55,14 +55,13 @@ function svgPoint(svg, ev) {
   pt.x = ev.clientX; pt.y = ev.clientY;
   return pt.matrixTransform(svg.getScreenCTM().inverse());
 }
+function rnd01(k) { const v = Math.sin(k) * 43758.5453; return v - Math.floor(v); }
 function addStars(svg, n, x0, y0, x1, y1, seedBase) {
   const g = S('g', null, svg);
   for (let i = 0; i < n; i++) {
     // 伪随机（固定种子，避免每次布局跳动）
-    const s = Math.sin((seedBase || 7) * 999 + i * 37.7);
-    const s2 = Math.sin((seedBase || 7) * 313 + i * 91.3);
-    const x = x0 + (s * 0.5 + 0.5) * (x1 - x0);
-    const y = y0 + (s2 * 0.5 + 0.5) * (y1 - y0);
+    const x = x0 + rnd01(i * 12.9898 + (seedBase || 7)) * (x1 - x0);
+    const y = y0 + rnd01(i * 78.233 + (seedBase || 7) * 7.13) * (y1 - y0);
     const r = 0.7 + (Math.abs(Math.sin(i * 12.9)) * 1.6);
     const c = S('circle', { cx: x.toFixed(1), cy: y.toFixed(1), r: r.toFixed(2), fill: '#e9edff', opacity: (0.25 + Math.abs(Math.sin(i * 5.1)) * 0.7).toFixed(2) }, g);
     if (i % 4 === 0) {
@@ -170,11 +169,25 @@ function finishLevel() {
   $('#doneOverlay').classList.add('show');
 }
 
-$('#nextBtn').addEventListener('click', () => {
+function goMap() { stopVoice(); tickFns = []; buildMap(); showScreen('mapScreen'); }
+function goNext() {
   if (currentLevel < LEVELS.length - 1) startLevel(currentLevel + 1);
-  else { buildMap(); showScreen('mapScreen'); }
-});
-$('#homeBtn').addEventListener('click', () => { stopVoice(); tickFns = []; buildMap(); showScreen('mapScreen'); });
+  else goMap();
+}
+/* 结尾讲解：先弹出星星和按钮（随时可跳过），讲完稍等自动进入下一关 */
+function endLevel(voiceId) {
+  finishLevel();
+  say(voiceId, () => {
+    setTimeout(() => {
+      if ($('#doneOverlay').classList.contains('show') && $('#levelScreen').classList.contains('active')) goNext();
+    }, 1500);
+  });
+}
+
+$('#doneOverlay').addEventListener('click', goNext);
+$('#homeBtn').addEventListener('click', goMap);
+$('#prevBtn').addEventListener('click', () => { if (currentLevel > 0) startLevel(currentLevel - 1); else goMap(); });
+$('#nextLvlBtn').addEventListener('click', goNext);
 $('#voiceBtn').addEventListener('click', () => say(replayId));
 
 /* ================= 地图 ================= */
@@ -207,11 +220,11 @@ function buildMap() {
   const mapScreen = $('#mapScreen');
   NODE_POS.forEach((p, i) => {
     const div = document.createElement('div');
-    div.className = 'mapNode ' + (i + 1 < unlocked ? 'done' : (i + 1 === unlocked ? 'open' : 'locked'));
+    div.className = 'mapNode ' + (i + 1 < unlocked ? 'done' : (i + 1 === unlocked ? 'open' : 'todo'));
     div.style.left = p[0] + '%';
     div.style.top = p[1] + '%';
     div.innerHTML = '<div class="num">' + LEVEL_EMOJI[i] + '</div><div class="lbl">' + LEVELS[i].name + '</div>';
-    if (i + 1 <= unlocked) div.addEventListener('click', () => startLevel(i));
+    div.addEventListener('click', () => startLevel(i));
     mapScreen.appendChild(div);
   });
 }
@@ -273,7 +286,7 @@ function buildL1() {
   // 小房子（贴在地球左边缘，一开始正对太阳）
   const house = S('g', null, spin);
   house.innerHTML = `
-    <g transform="translate(${CX - R + 6},${CY}) rotate(90)">
+    <g transform="translate(${CX - R + 26},${CY}) rotate(-90)">
       <rect x="-16" y="-26" width="32" height="24" fill="#c9553d" rx="2"/>
       <path d="M -22 -26 L 0 -46 L 22 -26 Z" fill="#8a3324"/>
       <rect x="-6" y="-14" width="12" height="12" fill="#ffe9b0"/>
@@ -313,7 +326,7 @@ function buildL1() {
       if (!finished && total >= 360) {
         finished = true;
         hint.textContent = '';
-        say('l1_done', finishLevel);
+        endLevel('l1_done');
       }
     }
   });
@@ -342,8 +355,6 @@ function buildL2() {
   // 远山近山（剪影）
   S('path', { d: 'M -200 470 L 80 360 L 260 450 L 430 340 L 620 460 L 800 370 L 1000 450 L 1200 400 L 1200 600 L -200 600 Z', fill: '#22304f', opacity: 0.75 }, svg);
   S('path', { d: 'M -200 520 Q 150 430 400 505 T 1200 500 L 1200 600 L -200 600 Z', fill: '#131c33' }, svg);
-  // 小树剪影
-  S('path', { d: 'M 250 505 l 0 -40 m -16 12 q 16 -34 32 0 m -30 -16 q 14 -30 28 0', stroke: '#0d1426', 'stroke-width': 7, fill: 'none', 'stroke-linecap': 'round' }, svg);
   // 月亮（夜晚出现）
   const moon = S('circle', { cx: 780, cy: 140, r: 38, fill: 'url(#moonG2)', opacity: 0 }, svg);
   // 太阳
@@ -383,7 +394,7 @@ function buildL2() {
       if (t >= 0.99) {
         finished = true;
         hint.textContent = '';
-        say('l2_done', finishLevel);
+        endLevel('l2_done');
       }
     }
   });
@@ -465,7 +476,7 @@ function buildL3() {
     else if (presses === 3) {
       busy = true;
       btnLbl.textContent = '';
-      say('l3_done', finishLevel);
+      endLevel('l3_done');
     }
   });
   say('intro_l3');
@@ -560,7 +571,7 @@ function buildL4() {
           px = slot.x; py = slot.y;
           gC.setAttribute('transform', `translate(${px},${py})`);
           gC.classList.remove('draggable');
-          if (placed === 4) { hint.textContent = ''; say('l4_done', finishLevel); }
+          if (placed === 4) { hint.textContent = ''; endLevel('l4_done'); }
           else cheer();
         } else {
           px = homeX; py = homeY;
@@ -633,7 +644,7 @@ function buildL5() {
           glow(g); phase = 2;
           hint.textContent = '';
           showBars();
-          cheer(() => say('l5_done', finishLevel));
+          cheer(() => endLevel('l5_done'));
         } else { shake(g); say('wrong_generic'); }
       }
     });
@@ -754,7 +765,7 @@ function buildL6() {
         busyVoice = true;
         if (gi === goals.length - 1) {
           finished = true; hint.textContent = '';
-          say(goal.voice, finishLevel);
+          endLevel(goal.voice);
         } else {
           say(goal.voice, () => { busyVoice = false; });
           gi++;
@@ -835,7 +846,7 @@ function buildL7() {
         panels[tp].frame.setAttribute('filter', 'drop-shadow(0 0 12px rgba(232,180,90,0.9))');
         qi++;
         if (qi < seq.length) cheer(() => { say(seq[qi].q); replayId = seq[qi].q; });
-        else { hint.textContent = ''; cheer(() => say('l7_done', finishLevel)); }
+        else { hint.textContent = ''; cheer(() => endLevel('l7_done')); }
       } else {
         const tr = panels[tp].g.getAttribute('transform');
         panels[tp].g.setAttribute('transform', tr + ' translate(6,0)');
@@ -898,7 +909,7 @@ function buildL8() {
             // 画出循环箭头
             S('path', { d: 'M 846 330 Q 920 460 500 480 Q 90 460 148 340', fill: 'none', stroke: '#c9b98a', 'stroke-width': 4, 'stroke-dasharray': '10 8', 'stroke-linecap': 'round' }, svg);
             S('path', { d: 'M 148 340 l -12 26 m 12 -26 l 26 12', stroke: '#c9b98a', 'stroke-width': 4, fill: 'none', 'stroke-linecap': 'round' }, svg);
-            say('l8_done', finishLevel);
+            endLevel('l8_done');
           });
         }
       } else {
@@ -1022,7 +1033,7 @@ function buildL9() {
     si++;
     if (si === 3) {
       btn.setAttribute('opacity', '0.35');
-      setSeason(3, () => say('l9_done', finishLevel));
+      setSeason(3, () => endLevel('l9_done'));
     } else {
       setSeason(si, () => { busy = false; });
     }
@@ -1109,7 +1120,7 @@ function buildL10() {
   function maybeFinish() {
     if (!finished && visited.size === 4 && oldHeard && t > 0.9) {
       finished = true; hint.textContent = '';
-      say('l10_done', finishLevel);
+      endLevel('l10_done');
     }
   }
   function update() {
@@ -1206,7 +1217,7 @@ function buildL11() {
           <path d="M 690 372 Q 700 340 716 356 L 724 342 L 734 358 Q 752 344 750 372 Z" fill="#f6ead2" stroke="#d8c4a0" stroke-width="3"/>
           <ellipse cx="722" cy="382" rx="52" ry="12" fill="#f4e6c8"/>
           <circle cx="722" cy="376" r="16" fill="#f2b93c"/>`;
-        say('l11_egg', () => say('l11_done', finishLevel));
+        say('l11_egg', () => endLevel('l11_done'));
       } else egg.setAttribute('cy', String(y));
     });
   }
@@ -1320,7 +1331,7 @@ function buildL12() {
               met.setAttribute('opacity', String(k < 0.5 ? k * 1.6 : (1 - k) * 1.6));
             });
           }
-          say('l12_done', finishLevel);
+          endLevel('l12_done');
         }
       });
     });
