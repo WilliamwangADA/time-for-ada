@@ -152,8 +152,7 @@ function startLevel(i) {
   tickFns = [];
   stopVoice();
   $('#doneOverlay').classList.remove('show');
-  const cn = ['一','二','三','四','五','六','七','八','九','十','十一','十二'][i];
-  $('#levelTitle').textContent = '第' + cn + '关 · ' + LEVELS[i].name;
+  $('#levelTitle').textContent = LEVEL_EMOJI[i] + ' ' + LEVELS[i].name;
   showScreen('levelScreen');
   replayId = 'intro_' + LEVELS[i].id;
   LEVELS[i].build();
@@ -166,8 +165,8 @@ function finishLevel() {
     unlocked = Math.min(LEVELS.length + 1, currentLevel + 2);
     localStorage.setItem('tfa_unlocked', String(unlocked));
   }
-  $('#doneMsg').textContent = currentLevel === LEVELS.length - 1 ? '旅程完成！' : '真棒！';
-  $('#nextBtn').textContent = currentLevel === LEVELS.length - 1 ? '回到星图 ✦' : '下一关 →';
+  $('#doneMsg').textContent = currentLevel === LEVELS.length - 1 ? '旅行完成，你太棒啦！' : '你太棒啦！';
+  $('#nextBtn').textContent = currentLevel === LEVELS.length - 1 ? '回到星空 ✦' : '继续出发 →';
   $('#doneOverlay').classList.add('show');
 }
 
@@ -179,6 +178,7 @@ $('#homeBtn').addEventListener('click', () => { stopVoice(); tickFns = []; build
 $('#voiceBtn').addEventListener('click', () => say(replayId));
 
 /* ================= 地图 ================= */
+const LEVEL_EMOJI = ['🌍', '🌅', '⏳', '🌱', '⏱', '⏰', '🏠', '🎠', '🍁', '👣', '💧', '✨'];
 const NODE_POS = [
   [8, 80], [20, 64], [14, 42], [26, 25], [40, 20], [50, 38],
   [44, 62], [58, 78], [71, 64], [66, 40], [79, 24], [91, 45]
@@ -210,7 +210,7 @@ function buildMap() {
     div.className = 'mapNode ' + (i + 1 < unlocked ? 'done' : (i + 1 === unlocked ? 'open' : 'locked'));
     div.style.left = p[0] + '%';
     div.style.top = p[1] + '%';
-    div.innerHTML = '<div class="num">' + (i + 1) + '</div><div class="lbl">' + LEVELS[i].name + '</div>';
+    div.innerHTML = '<div class="num">' + LEVEL_EMOJI[i] + '</div><div class="lbl">' + LEVELS[i].name + '</div>';
     if (i + 1 <= unlocked) div.addEventListener('click', () => startLevel(i));
     mapScreen.appendChild(div);
   });

@@ -49,7 +49,7 @@
   .mapNode .num { font-size:min(4.2vw,26px); font-weight:700; color:#fff; }
   .mapNode .lbl { position:absolute; top:104%; white-space:nowrap; font-size:min(2.6vw,13px); color:#b8c2dd; }
   .mapNode.locked { background:radial-gradient(circle at 35% 30%, #3a4462, #1e2540); box-shadow:inset 0 0 10px rgba(0,0,0,.6); }
-  .mapNode.locked .num { color:#66719355; }
+  .mapNode.locked .num { filter:grayscale(1) brightness(.45); }
   .mapNode.open { background:radial-gradient(circle at 35% 30%, #ffe9b0, #d99a37);
     box-shadow:0 0 26px rgba(233,182,90,.65); animation:pulse 1.8s ease-in-out infinite; }
   .mapNode.open .num { color:#3a2703; }
@@ -116,7 +116,7 @@
   </div>
 
   <div id="mapScreen" class="screen">
-    <div id="mapTitle">✦ 时间之旅 · 选一颗星球 ✦</div>
+    <div id="mapTitle">✦ 跟着小星星，一起去找时间 ✦</div>
     <svg id="mapPath"></svg>
   </div>
 
