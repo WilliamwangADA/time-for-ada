@@ -1,5 +1,5 @@
 'use strict';
-/* 艾达的时间之旅 —— 12 关时间科普小游戏 */
+/* Ada的时间之旅 —— 12 关时间科普小游戏 */
 
 const $ = s => document.querySelector(s);
 const stage = $('#stage');

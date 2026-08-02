@@ -1,5 +1,5 @@
 /* 时间之旅 Service Worker：缓存优先，首访后可离线玩 */
-const CACHE = 'time-for-ada-v3';
+const CACHE = 'time-for-ada-v4';
 const CORE = ['./', './index.html', './game.js', './voice_lines.js', './manifest.webmanifest'];
 
 self.addEventListener('install', e => {
