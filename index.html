@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>艾达的时间之旅</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#0b1226">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="时间之旅">
+<link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html, body {
+    width:100%; height:100%; overflow:hidden;
+    background:#0b1226; color:#f2ead9;
+    font-family:"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+    overscroll-behavior:none; -webkit-touch-callout:none; touch-action:manipulation;
+    -webkit-user-select:none; user-select:none;
+  }
+  #app { position:fixed; inset:0; }
+  .screen { position:absolute; inset:0; display:none; }
+  .screen.active { display:block; }
+
+  /* ---------- 开始页 ---------- */
+  #startScreen { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:26px;
+    background:radial-gradient(ellipse at 50% 120%, #1d2c54 0%, #0b1226 60%, #060a18 100%); }
+  #startScreen.screen { display:none; } #startScreen.screen.active { display:flex; }
+  #startTitle { font-size:min(9vw,58px); font-weight:700; letter-spacing:6px;
+    background:linear-gradient(180deg,#ffe9b8,#e8b96a); -webkit-background-clip:text; background-clip:text; color:transparent;
+    text-shadow:0 0 40px rgba(232,185,106,.25); }
+  #startSub { font-size:min(4vw,20px); color:#a9b4d0; letter-spacing:2px; }
+  #startBtn { margin-top:10px; padding:18px 64px; font-size:min(6vw,30px); font-weight:700; color:#241a05;
+    background:linear-gradient(180deg,#ffe2a0,#e0a94f); border:none; border-radius:60px;
+    box-shadow:0 6px 24px rgba(224,169,79,.45), inset 0 2px 0 rgba(255,255,255,.6); cursor:pointer; }
+  #startBtn:active { transform:scale(.95); }
+  .startClock { width:min(30vw,150px); height:min(30vw,150px); }
+
+  /* ---------- 地图页 ---------- */
+  #mapScreen { background:radial-gradient(ellipse at 50% 0%, #17244a 0%, #0b1226 55%, #070c1a 100%); }
+  #mapTitle { position:absolute; top:max(10px, env(safe-area-inset-top)); width:100%; text-align:center;
+    font-size:min(5vw,26px); color:#e8d9b0; letter-spacing:4px; z-index:2; }
+  #mapPath { position:absolute; inset:0; width:100%; height:100%; }
+  .mapNode { position:absolute; width:min(11vw,74px); height:min(11vw,74px); border-radius:50%;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    transform:translate(-50%,-50%); cursor:pointer; z-index:3; }
+  .mapNode .num { font-size:min(4.2vw,26px); font-weight:700; color:#fff; }
+  .mapNode .lbl { position:absolute; top:104%; white-space:nowrap; font-size:min(2.6vw,13px); color:#b8c2dd; }
+  .mapNode.locked { background:radial-gradient(circle at 35% 30%, #3a4462, #1e2540); box-shadow:inset 0 0 10px rgba(0,0,0,.6); }
+  .mapNode.locked .num { color:#66719355; }
+  .mapNode.open { background:radial-gradient(circle at 35% 30%, #ffe9b0, #d99a37);
+    box-shadow:0 0 26px rgba(233,182,90,.65); animation:pulse 1.8s ease-in-out infinite; }
+  .mapNode.open .num { color:#3a2703; }
+  .mapNode.done { background:radial-gradient(circle at 35% 30%, #9fd8ff, #3d7fc1); box-shadow:0 0 14px rgba(120,180,255,.4); }
+  @keyframes pulse { 0%,100%{transform:translate(-50%,-50%) scale(1);} 50%{transform:translate(-50%,-50%) scale(1.1);} }
+
+  /* ---------- 关卡页 ---------- */
+  #levelScreen { background:#0b1226; }
+  #stage { position:absolute; inset:0; }
+  #stage svg { display:block; }
+  #hud { position:absolute; top:max(8px, env(safe-area-inset-top)); left:0; width:100%;
+    display:flex; align-items:center; justify-content:space-between; padding:0 14px; z-index:20; pointer-events:none; }
+  .hudBtn { pointer-events:auto; width:min(11vw,56px); height:min(11vw,56px); border-radius:50%;
+    border:2px solid rgba(255,255,255,.25); background:rgba(10,16,38,.55); backdrop-filter:blur(4px);
+    display:flex; align-items:center; justify-content:center; cursor:pointer; }
+  .hudBtn svg { width:58%; height:58%; }
+  #levelTitle { font-size:min(4.6vw,24px); letter-spacing:3px; color:#f2e6c8;
+    text-shadow:0 2px 8px rgba(0,0,0,.7); pointer-events:none; }
+
+  /* 完成浮层 */
+  #doneOverlay { position:absolute; inset:0; display:none; align-items:center; justify-content:center;
+    flex-direction:column; gap:22px; background:rgba(6,10,24,.55); z-index:30; }
+  #doneOverlay.show { display:flex; }
+  #doneStar { width:min(34vw,170px); height:min(34vw,170px); animation:starIn .7s ease-out; }
+  @keyframes starIn { 0%{transform:scale(0) rotate(-40deg);} 70%{transform:scale(1.15);} 100%{transform:scale(1);} }
+  #doneMsg { font-size:min(5.5vw,30px); font-weight:700; color:#ffe9b0; letter-spacing:4px; }
+  #nextBtn { padding:14px 52px; font-size:min(5vw,26px); font-weight:700; color:#241a05;
+    background:linear-gradient(180deg,#ffe2a0,#e0a94f); border:none; border-radius:50px;
+    box-shadow:0 6px 20px rgba(224,169,79,.5); cursor:pointer; }
+  #nextBtn:active { transform:scale(.95); }
+
+  .bigChoice { position:absolute; bottom:5%; padding:14px 34px; font-size:min(5vw,26px); font-weight:700;
+    border:none; border-radius:46px; cursor:pointer; color:#fff;
+    box-shadow:0 5px 16px rgba(0,0,0,.45); }
+  .draggable { touch-action:none; cursor:grab; }
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="startScreen" class="screen active">
+    <svg class="startClock" viewBox="0 0 100 100">
+      <defs>
+        <radialGradient id="cfaceG" cx="40%" cy="35%" r="80%">
+          <stop offset="0%" stop-color="#fffdf5"/><stop offset="100%" stop-color="#d8cdb2"/>
+        </radialGradient>
+      </defs>
+      <circle cx="50" cy="50" r="47" fill="#2c2418" stroke="#8a7346" stroke-width="2"/>
+      <circle cx="50" cy="50" r="41" fill="url(#cfaceG)"/>
+      <g stroke="#5a4d33" stroke-width="2" stroke-linecap="round">
+        <line x1="50" y1="12" x2="50" y2="18"/><line x1="50" y1="82" x2="50" y2="88"/>
+        <line x1="12" y1="50" x2="18" y2="50"/><line x1="82" y1="50" x2="88" y2="50"/>
+      </g>
+      <line x1="50" y1="50" x2="50" y2="27" stroke="#3a3122" stroke-width="4" stroke-linecap="round">
+        <animateTransform attributeName="transform" type="rotate" from="0 50 50" to="360 50 50" dur="24s" repeatCount="indefinite"/>
+      </line>
+      <line x1="50" y1="50" x2="68" y2="50" stroke="#3a3122" stroke-width="3" stroke-linecap="round">
+        <animateTransform attributeName="transform" type="rotate" from="0 50 50" to="360 50 50" dur="2s" repeatCount="indefinite"/>
+      </line>
+      <circle cx="50" cy="50" r="3" fill="#8a7346"/>
+    </svg>
+    <div id="startTitle">艾达的时间之旅</div>
+    <div id="startSub">时间是什么？一起去发现吧</div>
+    <button id="startBtn">出 发</button>
+  </div>
+
+  <div id="mapScreen" class="screen">
+    <div id="mapTitle">✦ 时间之旅 · 选一颗星球 ✦</div>
+    <svg id="mapPath"></svg>
+  </div>
+
+  <div id="levelScreen" class="screen">
+    <div id="stage"></div>
+    <div id="hud">
+      <div class="hudBtn" id="homeBtn" title="回地图">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#f2e6c8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 11 12 3l9 8"/><path d="M5 10v10h14V10"/>
+        </svg>
+      </div>
+      <div id="levelTitle"></div>
+      <div class="hudBtn" id="voiceBtn" title="再听一遍">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#f2e6c8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 9v6h4l5 4V5L8 9H4z" fill="#f2e6c8" stroke="none"/>
+          <path d="M16 8a5 5 0 0 1 0 8"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/>
+        </svg>
+      </div>
+    </div>
+    <div id="doneOverlay">
+      <svg id="doneStar" viewBox="0 0 100 100">
+        <defs><radialGradient id="starG" cx="50%" cy="40%" r="70%">
+          <stop offset="0%" stop-color="#fff6d8"/><stop offset="100%" stop-color="#e8a93c"/>
+        </radialGradient></defs>
+        <path d="M50 4 61 36 95 37 68 58 78 92 50 72 22 92 32 58 5 37 39 36 Z" fill="url(#starG)"
+          stroke="#b57d1e" stroke-width="2" stroke-linejoin="round"/>
+      </svg>
+      <div id="doneMsg">真棒！</div>
+      <button id="nextBtn">下一关 →</button>
+    </div>
+  </div>
+</div>
+<script src="voice_lines.js"></script>
+<script src="game.js"></script>
+<script>
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
+</script>
+</body>
+</html>
