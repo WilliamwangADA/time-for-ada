@@ -12,10 +12,14 @@ const BG_JPG = new Set(['cover_bg','map_bg','l1_bg','l2_noon','l2_dawn','l2_dusk
   'l10_bg','l11_bg','l12_bg']);
 const STICKERS = ['girl_kid','l1_earth','l1_sun','l3_hourglass','l6_clock','l8_lantern',
   'l10_baby','l10_adult','l10_old','l11_egg','l11_egg_broken'];
-function ART(k) { return 'assets/art/' + k + (BG_JPG.has(k) ? '.jpg' : '.webp'); }
-function preloadAll() {
-  [...BG_JPG, ...STICKERS].forEach(k => { const im = new Image(); im.src = ART(k); });
-}
+/* WebP 支持探测：不支持(老iOS)自动退回 PNG 副本 */
+let STICKER_EXT = '.png';
+(function () {
+  const im = new Image();
+  im.onload = () => { if (im.width > 0) STICKER_EXT = '.webp'; };
+  im.src = 'data:image/webp;base64,UklGRiIAAABXRUJQVlA4IBYAAAAwAQCdASoBAAEADsD+JaQAA3AAAAAA';
+})();
+function ART(k) { return 'assets/art/' + k + (BG_JPG.has(k) ? '.jpg' : STICKER_EXT); }
 
 /* ================= 语音 ================= */
 const audioEl = new Audio();
