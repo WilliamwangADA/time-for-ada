@@ -12,7 +12,7 @@ const BG_JPG = new Set(['cover_bg','map_bg','l1_bg','l2_noon','l2_dawn','l2_dusk
   'l10_bg','l11_bg','l12_bg']);
 const STICKERS = ['girl_kid','l1_earth','l1_sun','l3_hourglass','l6_clock','l8_lantern',
   'l10_baby','l10_adult','l10_old','l11_egg','l11_egg_broken'];
-function ART(k) { return 'assets/art/' + k + (BG_JPG.has(k) ? '.jpg' : '.png'); }
+function ART(k) { return 'assets/art/' + k + (BG_JPG.has(k) ? '.jpg' : '.webp'); }
 function preloadAll() {
   [...BG_JPG, ...STICKERS].forEach(k => { const im = new Image(); im.src = ART(k); });
 }
@@ -307,7 +307,6 @@ function buildMap() {
 /* ================= 开始 ================= */
 $('#startBtn').addEventListener('click', () => {
   sfx('good');
-  preloadAll();
   buildMap();
   showScreen('mapScreen');
   say('welcome');
